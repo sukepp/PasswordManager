@@ -25,5 +25,12 @@ if [ ! -f "$ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE" ]; then
     exit 3
 fi
 
+#lockfile="./$USER_DIR.lock"
+#exec 200>$lockfile
+#flock -n 200 || {
+#    echo "please wait"
+#    exit 1
+#}
+
 cat $ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE
 exit 0

@@ -33,6 +33,12 @@ if [ ! -d "$ROOT_DIR/$USER_DIR" ]; then
     exit 2
 fi
 
+lockfile="./$USER_DIR.lock"
+exec 200>$lockfile
+flock -n 200 || {
+    echo "$USER_DIR is logging. Please wait"
+    exit 1
+}
 
 if [[ $OPTION == "f" ]]; then
     if [ -f "$ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE" ]; then
@@ -45,11 +51,13 @@ if [[ $OPTION == "f" ]]; then
         echo -e "$CONTENT" > $ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE
         echo "OK: service created"
     fi
+    rm $lockfile
     exit 0
 fi
 
 if [ -f "$ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE" ]; then
     echo "Error: service already exists"
+    rm $lockfile
     exit 3
 fi
 
@@ -58,5 +66,6 @@ if [ ! -d $ROOT_DIR/$USER_DIR/$SERVICE_DIR ]; then
 fi
 echo -e "$CONTENT" > $ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE
 echo "OK: service created"
+rm $lockfile
 exit 0
 

@@ -18,6 +18,14 @@ if [ -d "$ROOT_DIR/$USER_DIR" ]; then
     exit 2
 fi
 
+lockfile="./$USER_DIR.lock"
+exec 200>$lockfile
+flock -n 200 || {
+    echo "$USER_DIR is logging. Please wait"
+    exit 1
+}
+
 mkdir $ROOT_DIR/$USER_DIR
 echo "OK: user created"
+rm $lockfile
 exit 0
