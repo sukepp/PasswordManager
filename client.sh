@@ -53,12 +53,13 @@ case "$OPTION" in
         echo "$CLIENT_ID $OPTION $ARGS_STRING" > $PIPE_SERVER
         read exit_code < $PIPE_CLIENT
         if [ $exit_code -eq 0 ]; then
-            read login < $PIPE_CLIENT
-            #echo "$login"
-            read password < $PIPE_CLIENT
-            #echo "$password"
+            FILE_TEMP=`mktemp`
+            cat $PIPE_CLIENT > $FILE_TEMP
+            login=`grep "login: " $FILE_TEMP | head -n 1 | sed 's/login: //'`
+            password=`grep "password: " $FILE_TEMP | head -n 1 | sed 's/password: //'`
             echo "$user_id's login for $service_file is $login"
             echo "$user_id's password for $service_file is $password"
+            rm $FILE_TEMP
         else
             cat $PIPE_CLIENT
         fi
@@ -73,16 +74,10 @@ case "$OPTION" in
         read exit_code < $PIPE_CLIENT
         if [ $exit_code -eq 0 ]; then
             FILE_TEMP=`mktemp`
-            read login < $PIPE_CLIENT
-            #echo "$login"
-            read password < $PIPE_CLIENT
-            #echo "$password"
-            echo "login: $login" > $FILE_TEMP
-            echo "pass: $password" >> $FILE_TEMP
+            cat $PIPE_CLIENT > $FILE_TEMP
             vim $FILE_TEMP
-            login=`sed -n '1p' $FILE_TEMP | sed 's/login: //'`
-            password=`sed -n '2p' $FILE_TEMP | sed 's/pass: //'`
-            #echo "$CLIENT_ID update $ARGS_STRING $login $password"
+            login=`grep "login: " $FILE_TEMP | head -n 1 | sed 's/login: //'`
+            password=`grep "password: " $FILE_TEMP | head -n 1 | sed 's/password: //'`
             echo "$CLIENT_ID update $ARGS_STRING $login $password" > $PIPE_SERVER
             rm $FILE_TEMP
         fi

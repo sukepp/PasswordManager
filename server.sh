@@ -32,7 +32,7 @@ while true; do
             login_id=${sub_args%% *}
             password=${sub_args#* }
             #echo "$user_id $service_file $login_id\n$password"
-            ./insert.sh $user_id $service_file "login: $login_id\npass: $password" > $PIPE_CLIENT &
+            ./insert.sh $user_id $service_file "login: $login_id\npassword: $password" > $PIPE_CLIENT &
             ;;
         show)
             user_id=${sub_args%% *}
@@ -49,8 +49,7 @@ while true; do
             sub_args=${sub_args#* }
             login_id=${sub_args%% *}
             password=${sub_args#* }
-            #echo "$user_id $service_file f \"login: $login_id\npass: $password\""
-            ./insert.sh $user_id $service_file f "login: $login_id\npass: $password" > $PIPE_CLIENT &
+            ./insert.sh $user_id $service_file f "login: $login_id\npassword: $password" > $PIPE_CLIENT &
             ;;
         rm)
             ./rm.sh $sub_args > $PIPE_CLIENT &

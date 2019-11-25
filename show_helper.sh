@@ -21,13 +21,14 @@ FILE_TEMP=`mktemp`
 exit_code=$?
 echo $exit_code > $PIPE_CLIENT
 if [ $exit_code -eq 0 ]; then
-    login_id=`sed -n '1p' $FILE_TEMP | sed 's/login: //'`
-    password=`sed -n '2p' $FILE_TEMP | sed 's/pass: //'`
-    #echo -e "$login_id\n$password"
-    echo "$login_id" > $PIPE_CLIENT
-    # bug: deadlock happend if the following line deleted
-    echo "show in service"
-    echo "$password" > $PIPE_CLIENT
+    #login_id=`sed -n '1p' $FILE_TEMP | sed 's/login: //'`
+    #password=`sed -n '2p' $FILE_TEMP | sed 's/pass: //'`
+    ##echo -e "$login_id\n$password"
+    #echo "$login_id" > $PIPE_CLIENT
+    ## bug: deadlock happend if the following line deleted
+    #echo "show in service"
+    #echo "$password" > $PIPE_CLIENT
+    cat $FILE_TEMP > $PIPE_CLIENT
 else
     cat $FILE_TEMP > $PIPE_CLIENT
 fi
