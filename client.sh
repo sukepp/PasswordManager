@@ -5,27 +5,33 @@ if [ $# -lt 3 ]; then
     exit 1
 fi
 
-PIPE_SERVER="server_pipe"
-CLIENT_ID=$1
-PIPE_CLIENT=$CLIENT_ID"_pipe"
-OPTION=$2
-ARGS_ARRAY=${@:3}
-ARGS_STRING=""
+pipe_server="server.pipe"
+encrypt_password="password"
+client_id="$1"
+pipe_client="$client_id".pipe
+option="$2"
+#args_array=${@:3}
+#args_string=""
 
-if [ ! -e $PIPE_CLIENT ]; then
-    mkfifo $PIPE_CLIENT
+if [ ! -e "$pipe_client" ]; then
+    mkfifo "$pipe_client"
 fi
 
-for value in ${ARGS_ARRAY[@]}
-do
-    ARGS_STRING="$ARGS_STRING$value "
-done
-ARGS_STRING=${ARGS_STRING/%?/}
+#for value in ${args_array[@]}
+#do
+#    args_string="$args_string$value "
+#done
+#args_string=${args_string/%?/}
 
-case "$OPTION" in
+case "$option" in
     init)
-        echo "$CLIENT_ID $OPTION $ARGS_STRING" > $PIPE_SERVER
-        cat $PIPE_CLIENT
+        if [ $# -ne 3 ]; then
+            echo "Error, parameters problem"
+            exit 1
+        fi
+        user_id="$3"
+        echo "$client_id\"$option\"$user_id" > $pipe_server
+        cat "$pipe_client"
         ;;
     insert)
         if [ $# -ne 4 ]; then
@@ -34,71 +40,71 @@ case "$OPTION" in
         fi
         read -p "Please write login: " login
         read -p "Please write password: " password
-        user_id=$3
-        service_file=$4
-        echo "$CLIENT_ID $OPTION $user_id $service_file $login $password" > $PIPE_SERVER
-        #val="$CLIENT_ID $OPTION $ARGS_STRING $login"
-        #val=$val'\n'
-        #val=$val"$password"
-        #echo "$val" > $PIPE_SERVER
-        cat $PIPE_CLIENT
+        user_id="$3"
+        service_path="$4"
+        ./encrypt.sh "$encrypt_password" "login: $login\npassword: $password" > tmp.txt
+        payload=`cat tmp.txt`
+        echo "$client_id\"$option\"$user_id\"$service_path\"$payload" > "$pipe_server"
+        cat "$pipe_client"
         ;;
     show)
         if [ $# -ne 4 ]; then
             echo "Error, parameters problem"
             exit 1
         fi
-        user_id=$3
-        service_file=$4
-        echo "$CLIENT_ID $OPTION $ARGS_STRING" > $PIPE_SERVER
-        read exit_code < $PIPE_CLIENT
+        user_id="$3"
+        service_path="$4"
+        echo "$client_id\"$option\"$user_id\"$service_path" > "$pipe_server"
+        read exit_code < "$pipe_client"
         if [ $exit_code -eq 0 ]; then
             FILE_TEMP=`mktemp`
-            cat $PIPE_CLIENT > $FILE_TEMP
-            login=`grep "login: " $FILE_TEMP | head -n 1 | sed 's/login: //'`
-            password=`grep "password: " $FILE_TEMP | head -n 1 | sed 's/password: //'`
-            echo "$user_id's login for $service_file is $login"
-            echo "$user_id's password for $service_file is $password"
+            cat "$pipe_client" > "$FILE_TEMP"
+            payload=`cat "$FILE_TEMP"`
+            ./decrypt.sh "$encrypt_password" "$payload" > tmp.txt
+            login=`grep "^login: " tmp.txt | head -n 1 | sed 's/login: //'`
+            password=`grep "^password: " tmp.txt | head -n 1 | sed 's/password: //'`
+            echo "$user_id's login for $service_path is $login"
+            echo "$user_id's password for $service_path is $password"
             rm $FILE_TEMP
         else
-            cat $PIPE_CLIENT
+            cat "$pipe_client"
         fi
         ;;
-    edit)
-        if [ $# -ne 4 ]; then
-            echo "Error, parameters problem"
-            exit 1
-        fi
-        #echo "Edit Mode: send -> $CLIENT_ID show $ARGS_STRING"
-        echo "$CLIENT_ID show $ARGS_STRING" > $PIPE_SERVER
-        read exit_code < $PIPE_CLIENT
-        if [ $exit_code -eq 0 ]; then
-            FILE_TEMP=`mktemp`
-            cat $PIPE_CLIENT > $FILE_TEMP
-            vim $FILE_TEMP
-            login=`grep "login: " $FILE_TEMP | head -n 1 | sed 's/login: //'`
-            password=`grep "password: " $FILE_TEMP | head -n 1 | sed 's/password: //'`
-            echo "$CLIENT_ID update $ARGS_STRING $login $password" > $PIPE_SERVER
-            rm $FILE_TEMP
-        fi
-        cat $PIPE_CLIENT
-        ;;
-    rm)
-        echo "$CLIENT_ID $OPTION $ARGS_STRING" > $PIPE_SERVER
-        cat $PIPE_CLIENT
-        ;;
-    ls)
-        echo "$CLIENT_ID $OPTION $ARGS_STRING" > $PIPE_SERVER
-        cat $PIPE_CLIENT
-        ;;
-    shutdown)
-        echo "$CLIENT_ID $OPTION $ARGS_STRING" > $PIPE_SERVER
-        cat $PIPE_CLIENT
-        ;;
+#    edit)
+#        if [ $# -ne 4 ]; then
+#            echo "Error, parameters problem"
+#            exit 1
+#        fi
+#        #echo "Edit Mode: send -> $client_id show $args_string"
+#        echo "$client_id show $args_string" > $pipe_server
+#        read exit_code < $pipe_client
+#        if [ $exit_code -eq 0 ]; then
+#            FILE_TEMP=`mktemp`
+#            cat $pipe_client > $FILE_TEMP
+#            vim $FILE_TEMP
+#            login=`grep "login: " $FILE_TEMP | head -n 1 | sed 's/login: //'`
+#            password=`grep "password: " $FILE_TEMP | head -n 1 | sed 's/password: //'`
+#            echo "$client_id update $args_string $login $password" > $pipe_server
+#            rm $FILE_TEMP
+#        fi
+#        cat $pipe_client
+#        ;;
+#    rm)
+#        echo "$client_id $option $args_string" > $pipe_server
+#        cat $pipe_client
+#        ;;
+#    ls)
+#        echo "$client_id $option $args_string" > $pipe_server
+#        cat $pipe_client
+#        ;;
+#    shutdown)
+#        echo "$client_id $option $args_string" > $pipe_server
+#        cat $pipe_client
+#        ;;
     *)
-        echo "$OPTION"
+        echo "$option"
         echo "Error, bad request"
         exit 1
 esac
-rm $PIPE_CLIENT
+rm "$pipe_client"
 
