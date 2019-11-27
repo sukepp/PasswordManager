@@ -1,9 +1,9 @@
 #!/bin/bash
 
-ROOT_DIR=./passManager
+root_dir="./PasswordManagementData"
 
-if [ ! -d "$ROOT_DIR" ]; then
-    mkdir $ROOT_DIR
+if [ ! -d "$root_dir" ]; then
+    mkdir "$root_dir"
 fi
 
 if [ $# -ne 2 ]; then
@@ -11,28 +11,28 @@ if [ $# -ne 2 ]; then
     exit 1
 fi
 
-USER_DIR=$1
-SERVICE_DIR=`dirname $2`
-SERVICE_FILE=`basename $2`
+user_dir="$1"
+service_dir=`dirname "$2"`
+service_file=`basename "$2"`
 
-if [ ! -d "$ROOT_DIR/$USER_DIR" ]; then
+if [ ! -d "$root_dir"/"$user_dir" ]; then
     echo "Error: user does not exist"
     exit 2
 fi
 
-if [ ! -f "$ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE" ]; then
+if [ ! -f "$root_dir"/"$user_dir"/"$service_dir"/"$service_file" ]; then
     echo "Error: service does not exist"
     exit 3
 fi
 
-lockfile="./$USER_DIR.lock"
-exec 200>$lockfile
+lockfile=./"$user_dir".lock
+exec 200>"$lockfile"
 flock -n 200 || {
-    echo "$USER_DIR is logging. Please wait"
+    echo "$user_dir is logging. Please wait"
     exit 1
 }
 
-rm $ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE
+rm "$root_dir"/"$user_dir"/"$service_dir"/"$service_file"
 echo "OK: service removed"
-rm $lockfile
+rm "$lockfile"
 exit 0

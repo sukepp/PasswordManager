@@ -1,10 +1,10 @@
 #!/bin/bash
 
-ROOT_DIR=./passManager
-OPTION="none"
+root_dir="./PasswordManagementData"
+mode="none"
 
-if [ ! -d "$ROOT_DIR" ]; then
-    mkdir $ROOT_DIR
+if [ ! -d "$root_dir" ]; then
+    mkdir "$root_dir"
 fi
 
 if [ $# -ne 3 ]; then
@@ -12,60 +12,55 @@ if [ $# -ne 3 ]; then
         echo "Error: parameters problem"
         exit 1
     fi
-    OPTION=$3
-    if [[ $OPTION != "f" && $OPTION != "" ]]; then
-        echo "Error: parameters problem"
-        exit 1
-    else
-        CONTENT=$4
-    fi
+    mode=$3
+    content=$4
 else
-    CONTENT=$3
+    content=$3
 fi
 
-USER_DIR=$1
-SERVICE_DIR=`dirname $2`
-SERVICE_FILE=`basename $2`
+user_dir=$1
+service_dir=`dirname "$2"`
+service_file=`basename "$2"`
 
-if [ ! -d "$ROOT_DIR/$USER_DIR" ]; then
-    echo "$ROOT_DIR/$USER_DIR"
+if [ ! -d "$root_dir"/"$user_dir" ]; then
     echo "Error: user does not exist"
     exit 2
 fi
 
-lockfile="./$USER_DIR.lock"
-exec 200>$lockfile
+lockfile=./"$user_dir".lock
+exec 200>"$lockfile"
 flock -n 200 || {
-    echo "$USER_DIR is logging. Please wait"
+    echo "$user_dir is logging. Please wait"
     exit 1
 }
 
-if [[ $OPTION == "f" ]]; then
-    if [ -f "$ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE" ]; then
-        echo -e "$CONTENT" > $ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE
+if [[ "$mode" == "f" ]]; then
+    if [ -f "$root_dir"/"$user_dir"/"$service_dir"/"$service_file" ]; then
+        echo -e "$content" > "$root_dir"/"$user_dir"/"$service_dir"/"$service_file"
         echo "OK: service updated"
     else
-        if [ ! -d $ROOT_DIR/$USER_DIR/$SERVICE_DIR ]; then
-            mkdir -p $ROOT_DIR/$USER_DIR/$SERVICE_DIR
+        if [ ! -d "$root_dir"/"$user_dir"/"$service_dir" ]; then
+            mkdir -p "$root_dir"/"$user_dir"/"$service_dir"
         fi
-        echo -e "$CONTENT" > $ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE
+        echo -e "$content" > "$root_dir"/"$user_dir"/"$service_dir"/"$service_file"
         echo "OK: service created"
     fi
-    rm $lockfile
+    rm "$lockfile"
     exit 0
 fi
 
-if [ -f "$ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE" ]; then
+if [ -f "$root_dir"/"$user_dir"/"$service_dir"/"$service_file" ]; then
     echo "Error: service already exists"
-    rm $lockfile
+    rm "$lockfile"
     exit 3
 fi
 
-if [ ! -d $ROOT_DIR/$USER_DIR/$SERVICE_DIR ]; then
-    mkdir -p $ROOT_DIR/$USER_DIR/$SERVICE_DIR
+if [ ! -d "$root_dir"/"$user_dir"/"$service_dir" ]; then
+    mkdir -p "$root_dir"/"$user_dir"/"$service_dir"
 fi
-echo -e "$CONTENT" > $ROOT_DIR/$USER_DIR/$SERVICE_DIR/$SERVICE_FILE
+
+echo -e "$content" > "$root_dir"/"$user_dir"/"$service_dir"/"$service_file"
 echo "OK: service created"
-rm $lockfile
+rm "$lockfile"
 exit 0
 

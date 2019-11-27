@@ -1,9 +1,9 @@
 #!/bin/bash
 
-ROOT_DIR=./passManager
+root_dir="./PasswordManagementData"
 
-if [ ! -d "$ROOT_DIR" ]; then
-    mkdir $ROOT_DIR
+if [ ! -d "$root_dir" ]; then
+    mkdir "$root_dir"
 fi
 
 if [[ $# -ne 1 && $# -ne 2 ]]; then
@@ -11,35 +11,35 @@ if [[ $# -ne 1 && $# -ne 2 ]]; then
     exit 1
 fi
 
-USER_DIR=$1
+user_dir="$1"
 
 
-if [ ! -d "$ROOT_DIR/$USER_DIR" ]; then
+if [ ! -d "$root_dir"/"$user_dir" ]; then
     echo "Error: user does not exist"
     exit 2
 fi
 
-lockfile="./$USER_DIR.lock"
-exec 200>$lockfile
+lockfile=./"$user_dir".lock
+exec 200>"$lockfile"
 flock -n 200 || {
-    echo "$USER_DIR is logging. Please wait"
+    echo "$user_dir is logging. Please wait"
     exit 1
 }
 
 if [ $# -eq 1 ]; then
     echo " ."
-    tree $ROOT_DIR/$USER_DIR | head -n -2 | tail -n +2
-    rm $lockfile
+    tree "$root_dir"/"$user_dir" | head -n -2 | tail -n +2
+    rm "$lockfile"
     exit 0
 else
-    SERVICE_DIR=$2
-    if [ ! -d "$ROOT_DIR/$USER_DIR/$SERVICE_DIR" ]; then
+    service_dir="$2"
+    if [ ! -d "$root_dir"/"$user_dir"/"$service_dir" ]; then
         echo "Error: folder does not exist"
-        rm $lockfile
+        rm "$lockfile"
         exit 3
     fi
-    echo "$SERVICE_DIR"
-    tree $ROOT_DIR/$USER_DIR/$SERVICE_DIR | head -n -2 | tail -n +2
-    rm $lockfile
+    echo "$service_dir"
+    tree "$root_dir"/"$user_dir"/"$service_dir" | head -n -2 | tail -n +2
+    rm "$lockfile"
     exit 0
 fi
