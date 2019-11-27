@@ -4,13 +4,14 @@ echo "server started."
 
 PIPE_SERVER="server.pipe"
 
-if [ ! -e $PIPE_SERVER ]; then
-   mkfifo $PIPE_SERVER
+if [ ! -e "$PIPE_SERVER" ]; then
+   mkfifo "$PIPE_SERVER"
 fi
 
 while true; do
     echo "waiting for request..."
-    read args < $PIPE_SERVER
+    #read args < $PIPE_SERVER
+    args=`cat "$PIPE_SERVER"`
     echo "Receive length: ${#args}"
     echo "Receive: $args"
 
@@ -42,34 +43,48 @@ while true; do
             ;;
         show)
             user_id=${sub_args%%\"*}
-            sub_args=${sub_args#*\"}
-            service_path=${sub_args%%\"*}
-            sub_args=${sub_args#*\"}
+            service_path=${sub_args#*\"}
             ./show_helper.sh "$user_id" "$service_path" "$pipe_client"
             ;;
-#        update)
-#            #echo "$sub_args"
-#            user_id=${sub_args%% *}
-#            sub_args=${sub_args#* }
-#            service_path=${sub_args%% *}
-#            sub_args=${sub_args#* }
-#            login_id=${sub_args%% *}
-#            password=${sub_args#* }
-#            ./insert.sh $user_id $service_path f "login: $login_id\npassword: $password" > $pipe_client &
-#            ;;
-#        rm)
-#            ./rm.sh $sub_args > $pipe_client &
-#            ;;
-#        ls)
-#            ./ls.sh $sub_args > $pipe_client &
-#            ;;
-#        shutdown)
-#            exit 0
-#            ;;
+        update)
+            #echo "$sub_args"
+            user_id=${sub_args%%\"*}
+            sub_args=${sub_args#*\"}
+            service_path=${sub_args%%\"*}
+            payload=${sub_args#*\"}
+            ./decrypt.sh "$decrypt_password" "$payload" > tmp1.txt
+            text=`cat tmp1.txt`
+            ./insert.sh "$user_id" "$service_path" f "$text" > "$pipe_client" &
+            ;;
+        rm)
+            user_id=${sub_args%%\"*}
+            service_path=${sub_args#*\"}
+            ./"rm.sh" "$user_id" "$service_path" > "$pipe_client" &
+            ;;
+        ls)
+            #sub_args=${sub_args/\"/\" \"}
+            delimter="\""
+            echo "$sub_args" | grep -q "$delimter"
+            if [ $? -eq 0 ]; then
+                user_id=${sub_args%%\"*}
+                service_dir=${sub_args#*\"}
+                ./"ls.sh" "$user_id" "$service_dir" > "$pipe_client" &
+            else
+                user_id="$sub_args"
+                ./"ls.sh" "$user_id" > "$pipe_client" &
+            fi
+            ;;
+        shutdown)
+            rm "$PIPE_SERVER"
+            echo "OK: server is shut down" > "$pipe_client" &
+            exit 0
+            ;;
         *)
             echo "Error, bad request"
             exit 1
     esac
 done
 
-rm $PIPE_SERVER
+rm "$PIPE_SERVER"
+exit 0
+

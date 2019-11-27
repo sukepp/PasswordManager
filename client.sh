@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $# -lt 3 ]; then
+if [ $# -lt 2 ]; then
     echo "Error: parameters problem"
     exit 1
 fi
@@ -10,18 +10,11 @@ encrypt_password="password"
 client_id="$1"
 pipe_client="$client_id".pipe
 option="$2"
-#args_array=${@:3}
-#args_string=""
 
-if [ ! -e "$pipe_client" ]; then
-    mkfifo "$pipe_client"
+if [ -e "$pipe_client" ]; then
+    rm "$pipe_client"
 fi
-
-#for value in ${args_array[@]}
-#do
-#    args_string="$args_string$value "
-#done
-#args_string=${args_string/%?/}
+mkfifo "$pipe_client"
 
 case "$option" in
     init)
@@ -70,41 +63,69 @@ case "$option" in
             cat "$pipe_client"
         fi
         ;;
-#    edit)
-#        if [ $# -ne 4 ]; then
-#            echo "Error, parameters problem"
-#            exit 1
-#        fi
-#        #echo "Edit Mode: send -> $client_id show $args_string"
-#        echo "$client_id show $args_string" > $pipe_server
-#        read exit_code < $pipe_client
-#        if [ $exit_code -eq 0 ]; then
-#            FILE_TEMP=`mktemp`
-#            cat $pipe_client > $FILE_TEMP
-#            vim $FILE_TEMP
-#            login=`grep "login: " $FILE_TEMP | head -n 1 | sed 's/login: //'`
-#            password=`grep "password: " $FILE_TEMP | head -n 1 | sed 's/password: //'`
-#            echo "$client_id update $args_string $login $password" > $pipe_server
-#            rm $FILE_TEMP
-#        fi
-#        cat $pipe_client
-#        ;;
-#    rm)
-#        echo "$client_id $option $args_string" > $pipe_server
-#        cat $pipe_client
-#        ;;
-#    ls)
-#        echo "$client_id $option $args_string" > $pipe_server
-#        cat $pipe_client
-#        ;;
-#    shutdown)
-#        echo "$client_id $option $args_string" > $pipe_server
-#        cat $pipe_client
-#        ;;
+    edit)
+        if [ $# -ne 4 ]; then
+            echo "Error, parameters problem"
+            exit 1
+        fi
+        user_id="$3"
+        service_path="$4"
+        #echo "Edit Mode: send -> $client_id show $args_string"
+        echo "$client_id\"show\"$user_id\"$service_path" > "$pipe_server"
+        read exit_code < "$pipe_client"
+        if [ $exit_code -eq 0 ]; then
+            FILE_TEMP=`mktemp`
+            #cat "$pipe_client" > "$FILE_TEMP"
+            cat "$pipe_client" | xargs -0 ./decrypt.sh "$encrypt_password" > "$FILE_TEMP"
+            vim "$FILE_TEMP"
+            #login=`grep "^login: " $FILE_TEMP | head -n 1 | sed 's/login: //'`
+            #password=`grep "^password: " $FILE_TEMP | head -n 1 | sed 's/password: //'`
+            #cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password"
+            #echo "******"
+            payload=`cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password"`
+            echo "$client_id\"update\"$user_id\"$service_path\"$payload" > "$pipe_server"
+            rm "$FILE_TEMP"
+        fi
+        cat "$pipe_client"
+        ;;
+    rm)
+        if [ $# -ne 4 ]; then
+            echo "Error, parameters problem"
+            exit 1
+        fi
+        user_id="$3"
+        service_path="$4"
+        echo "$client_id\"$option\"$user_id\"$service_path" > "$pipe_server"
+        cat "$pipe_client"
+        ;;
+    ls)
+        if [ $# -eq 3 ]; then
+            user_id="$3"
+            echo "$client_id\"$option\"$user_id" > "$pipe_server"
+            cat "$pipe_client"
+        elif [ $# -eq 4 ]; then
+            user_id="$3"
+            service_dir="$4"
+            echo "$client_id\"$option\"$user_id\"$service_dir" > "$pipe_server"
+            cat "$pipe_client"
+        else
+            echo "Error, parameters problem"
+            exit 1
+        fi
+        ;;
+    shutdown)
+        if [ $# -ne 2 ]; then
+            echo "Error, parameters problem"
+            exit 1
+        fi
+        echo "$client_id\"$option" > "$pipe_server"
+        cat "$pipe_client"
+        ;;
     *)
         echo "$option"
         echo "Error, bad request"
         exit 1
 esac
 rm "$pipe_client"
+exit 0
 
