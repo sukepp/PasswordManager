@@ -6,6 +6,12 @@ if [ $# -lt 2 ]; then
 fi
 
 pipe_server="server.pipe"
+
+if [ ! -e "$pipe_server" ]; then
+    echo "Error, server is not started yet."
+    exit 1
+fi
+
 encrypt_password="password"
 client_id="$1"
 pipe_client="$client_id".pipe
@@ -35,7 +41,8 @@ case "$option" in
         read -p "Please write password: " password
         user_id="$3"
         service_path="$4"
-        ./encrypt.sh "$encrypt_password" "login: $login\npassword: $password" > tmp.txt
+        echo -e "login: $login\npassword: $password" | xargs -0 ./encrypt.sh "$encrypt_password" > tmp.txt
+        #./encrypt.sh "$encrypt_password" "login: $login\npassword: $password" > tmp.txt
         payload=`cat tmp.txt`
         echo "$client_id\"$option\"$user_id\"$service_path\"$payload" > "$pipe_server"
         cat "$pipe_client"
@@ -54,6 +61,9 @@ case "$option" in
             FILE_TEMP=`mktemp`
             cat "$pipe_client" > "$FILE_TEMP"
             payload=`cat "$FILE_TEMP"`
+            #echo "$payload"
+            #./decrypt.sh "$encrypt_password" "$payload"
+            #echo -e `./decrypt.sh "$encrypt_password" "$payload"` > tmp.txt
             ./decrypt.sh "$encrypt_password" "$payload" > tmp.txt
             login=`grep "^login: " tmp.txt | head -n 1 | sed 's/login: //'`
             password=`grep "^password: " tmp.txt | head -n 1 | sed 's/password: //'`
@@ -78,16 +88,28 @@ case "$option" in
         if [ $exit_code -eq 0 ]; then
             FILE_TEMP=`mktemp`
             #cat "$pipe_client" > "$FILE_TEMP"
+            #echo -e `cat "$pipe_client" | xargs -0 ./decrypt.sh "$encrypt_password"` > "$FILE_TEMP"
             cat "$pipe_client" | xargs -0 ./decrypt.sh "$encrypt_password" > "$FILE_TEMP"
+            sed -i '$d' $FILE_TEMP
             vim "$FILE_TEMP"
             #login=`grep "^login: " $FILE_TEMP | head -n 1 | sed 's/login: //'`
             #password=`grep "^password: " $FILE_TEMP | head -n 1 | sed 's/password: //'`
             #cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password"
             #echo "******"
-            payload=`cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password"`
-            #payload=`echo $payload | tr -d \\n`
-            #payload=${payload//\\n\\r/-}
+            #payload=`cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password"`
+            cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password" > tmp.txt
+            payload=`cat tmp.txt | xargs echo -n`
+            #echo "$payload" > tmp.txt
+            #payload=${payload/%?/}
             #echo "$payload"
+            #payload=`echo -n "$payload"`
+            #payload=`echo $payload | tr -d \\n`
+            #echo "test"
+            #echo "$payload"
+            #echo ${#payload}
+            #payload=${payload//\\r\\n/-}
+            #echo "$payload"
+            #echo ${#payload}
             #echo ${payload[0]}
             echo "$client_id\"update\"$user_id\"$service_path\"$payload" > "$pipe_server"
             rm -f "$FILE_TEMP"

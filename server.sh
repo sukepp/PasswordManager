@@ -36,9 +36,10 @@ while true; do
             #echo "$user_id"
             #echo "$service_path"
             #echo "$payload"
-            ./decrypt.sh "$decrypt_password" "$payload" > tmp1.txt
-            text=`cat tmp1.txt`
-            ./insert.sh "$user_id" "$service_path" "$text" > "$pipe_client" &
+            #./decrypt.sh "$decrypt_password" "$payload" > tmp1.txt
+            #text=`cat tmp1.txt`
+            #./insert.sh "$user_id" "$service_path" "$text" > "$pipe_client" &
+            ./insert.sh "$user_id" "$service_path" "$payload" > "$pipe_client" &
             #echo `./insert.sh "$user_id" "$service_path" "$text"`
             ;;
         show)
@@ -52,9 +53,10 @@ while true; do
             sub_args=${sub_args#*\"}
             service_path=${sub_args%%\"*}
             payload=${sub_args#*\"}
-            ./decrypt.sh "$decrypt_password" "$payload" > tmp1.txt
-            text=`cat tmp1.txt`
-            ./insert.sh "$user_id" "$service_path" f "$text" > "$pipe_client" &
+            #./decrypt.sh "$decrypt_password" "$payload" > tmp1.txt
+            #text=`cat tmp1.txt`
+            #./insert.sh "$user_id" "$service_path" f "$text" > "$pipe_client" &
+            ./insert.sh "$user_id" "$service_path" f "$payload" > "$pipe_client" &
             ;;
         rm)
             user_id=${sub_args%%\"*}

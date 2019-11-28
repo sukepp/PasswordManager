@@ -30,11 +30,11 @@ if [ $exit_code -eq 0 ]; then
     #echo "show in service"
     #echo "$password" > $pipe_client
 
-    payload=`cat $FILE_TEMP`
-    echo $payload
-    ./encrypt.sh "$encrypt_password" "$payload" > "$pipe_client"
+    #payload=`cat $FILE_TEMP`
+    #echo $payload
+    #./encrypt.sh "$encrypt_password" "$payload" > "$pipe_client"
     #echo `./encrypt.sh "$encrypt_password" "$payload"`
-    #cat $FILE_TEMP > $pipe_client
+    cat "$FILE_TEMP" > "$pipe_client"
 else
     cat "$FILE_TEMP" > "$pipe_client"
 fi
