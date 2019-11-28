@@ -109,7 +109,7 @@ echo "Test client.sh"
 
 ./server.sh &> "servout2.txt" &
 serverPID=$!
-
+sleep 1
 echo "Client init anotherUser"
 ./client.sh client1 init anotherUser
 

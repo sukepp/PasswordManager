@@ -27,9 +27,9 @@ flock -n 200 || {
 }
 
 if [ $# -eq 1 ]; then
+    echo "OK:"
     echo " ."
     tree "$root_dir"/"$user_dir" | head -n -2 | tail -n +2
-    sleep 1
     rm -f "$lockfile"
     exit 0
 else
@@ -39,6 +39,7 @@ else
         rm -f "$lockfile"
         exit 3
     fi
+    echo "OK:"
     echo "$service_dir"
     tree "$root_dir"/"$user_dir"/"$service_dir" | head -n -2 | tail -n +2
     rm -f "$lockfile"

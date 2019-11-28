@@ -87,18 +87,20 @@ case "$option" in
         read exit_code < "$pipe_client"
         if [ $exit_code -eq 0 ]; then
             FILE_TEMP=`mktemp`
+            FILE_PAYLOAD=`mktemp`
             #cat "$pipe_client" > "$FILE_TEMP"
             #echo -e `cat "$pipe_client" | xargs -0 ./decrypt.sh "$encrypt_password"` > "$FILE_TEMP"
-            cat "$pipe_client" | xargs -0 ./decrypt.sh "$encrypt_password" > "$FILE_TEMP"
-            sed -i '$d' $FILE_TEMP
+            cat "$pipe_client" | xargs -0 ./decrypt.sh "$encrypt_password" > "$FILE_PAYLOAD"
+            #sed -i '$d' $FILE_TEMP
+            cat -s "$FILE_PAYLOAD" > "$FILE_TEMP"
             vim "$FILE_TEMP"
             #login=`grep "^login: " $FILE_TEMP | head -n 1 | sed 's/login: //'`
             #password=`grep "^password: " $FILE_TEMP | head -n 1 | sed 's/password: //'`
             #cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password"
             #echo "******"
             #payload=`cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password"`
-            cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password" > tmp.txt
-            payload=`cat tmp.txt | xargs echo -n`
+            cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password" > "$FILE_PAYLOAD"
+            payload=`cat "$FILE_PAYLOAD" | xargs echo -n`
             #echo "$payload" > tmp.txt
             #payload=${payload/%?/}
             #echo "$payload"
