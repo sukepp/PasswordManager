@@ -29,17 +29,18 @@ flock -n 200 || {
 if [ $# -eq 1 ]; then
     echo " ."
     tree "$root_dir"/"$user_dir" | head -n -2 | tail -n +2
-    rm "$lockfile"
+    sleep 1
+    rm -f "$lockfile"
     exit 0
 else
     service_dir="$2"
     if [ ! -d "$root_dir"/"$user_dir"/"$service_dir" ]; then
         echo "Error: folder does not exist"
-        rm "$lockfile"
+        rm -f "$lockfile"
         exit 3
     fi
     echo "$service_dir"
     tree "$root_dir"/"$user_dir"/"$service_dir" | head -n -2 | tail -n +2
-    rm "$lockfile"
+    rm -f "$lockfile"
     exit 0
 fi

@@ -10,8 +10,8 @@ fi
 
 while true; do
     echo "waiting for request..."
-    #read args < $PIPE_SERVER
-    args=`cat "$PIPE_SERVER"`
+    read args < $PIPE_SERVER
+    #args=`cat "$PIPE_SERVER"`
     echo "Receive length: ${#args}"
     echo "Receive: $args"
 
@@ -38,13 +38,13 @@ while true; do
             #echo "$payload"
             ./decrypt.sh "$decrypt_password" "$payload" > tmp1.txt
             text=`cat tmp1.txt`
-            ./insert.sh "$user_id" "$service_path" "$text" > "$pipe_client"
+            ./insert.sh "$user_id" "$service_path" "$text" > "$pipe_client" &
             #echo `./insert.sh "$user_id" "$service_path" "$text"`
             ;;
         show)
             user_id=${sub_args%%\"*}
             service_path=${sub_args#*\"}
-            ./show_helper.sh "$user_id" "$service_path" "$pipe_client"
+            ./show_helper.sh "$user_id" "$service_path" "$pipe_client" &
             ;;
         update)
             #echo "$sub_args"
@@ -75,7 +75,7 @@ while true; do
             fi
             ;;
         shutdown)
-            rm "$PIPE_SERVER"
+            rm -f "$PIPE_SERVER"
             echo "OK: server is shut down" > "$pipe_client" &
             exit 0
             ;;
@@ -85,6 +85,6 @@ while true; do
     esac
 done
 
-rm "$PIPE_SERVER"
+rm -f "$PIPE_SERVER"
 exit 0
 

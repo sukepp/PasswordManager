@@ -32,7 +32,7 @@ flock -n 200 || {
     exit 1
 }
 
-rm "$root_dir"/"$user_dir"/"$service_dir"/"$service_file"
+rm -f "$root_dir"/"$user_dir"/"$service_dir"/"$service_file"
 echo "OK: service removed"
-rm "$lockfile"
+rm -f "$lockfile"
 exit 0

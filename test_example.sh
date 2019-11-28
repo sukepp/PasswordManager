@@ -75,7 +75,7 @@ if [ -p "./server.pipe" ]; then
 	echo "server.pipe created"
         mkfifo client1.pipe
 
-	echo "client1 init aDifferentUser" > ./server.pipe
+	echo "client1\"init\"aDifferentUser" > ./server.pipe
         echo "Server's answer to init aDifferentUser:"
         cat ./client1.pipe
 	if [ -e "$rootFolder/aDifferentUser" ]; then
@@ -84,7 +84,7 @@ if [ -p "./server.pipe" ]; then
 		echo "Server seems to have a problem"
 	fi
 
-	echo "client1 shutdown" > ./server.pipe
+	echo "client1\"shutdown" > ./server.pipe
         cat ./client1.pipe
 	sleep 1
 	if ps -p $serverPID > /dev/null; then

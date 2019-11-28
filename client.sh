@@ -11,15 +11,14 @@ client_id="$1"
 pipe_client="$client_id".pipe
 option="$2"
 
-if [ -e "$pipe_client" ]; then
-    rm "$pipe_client"
-fi
+rm -f "$pipe_client"
 mkfifo "$pipe_client"
 
 case "$option" in
     init)
         if [ $# -ne 3 ]; then
             echo "Error, parameters problem"
+            rm -f "$pipe_client"
             exit 1
         fi
         user_id="$3"
@@ -29,6 +28,7 @@ case "$option" in
     insert)
         if [ $# -ne 4 ]; then
             echo "Error, parameters problem"
+            rm -f "$pipe_client"
             exit 1
         fi
         read -p "Please write login: " login
@@ -43,6 +43,7 @@ case "$option" in
     show)
         if [ $# -ne 4 ]; then
             echo "Error, parameters problem"
+            rm -f "$pipe_client"
             exit 1
         fi
         user_id="$3"
@@ -58,7 +59,7 @@ case "$option" in
             password=`grep "^password: " tmp.txt | head -n 1 | sed 's/password: //'`
             echo "$user_id's login for $service_path is $login"
             echo "$user_id's password for $service_path is $password"
-            rm $FILE_TEMP
+            rm -f $FILE_TEMP
         else
             cat "$pipe_client"
         fi
@@ -66,6 +67,7 @@ case "$option" in
     edit)
         if [ $# -ne 4 ]; then
             echo "Error, parameters problem"
+            rm -f "$pipe_client"
             exit 1
         fi
         user_id="$3"
@@ -83,14 +85,19 @@ case "$option" in
             #cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password"
             #echo "******"
             payload=`cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password"`
+            #payload=`echo $payload | tr -d \\n`
+            #payload=${payload//\\n\\r/-}
+            #echo "$payload"
+            #echo ${payload[0]}
             echo "$client_id\"update\"$user_id\"$service_path\"$payload" > "$pipe_server"
-            rm "$FILE_TEMP"
+            rm -f "$FILE_TEMP"
         fi
         cat "$pipe_client"
         ;;
     rm)
         if [ $# -ne 4 ]; then
             echo "Error, parameters problem"
+            rm -f "$pipe_client"
             exit 1
         fi
         user_id="$3"
@@ -110,12 +117,14 @@ case "$option" in
             cat "$pipe_client"
         else
             echo "Error, parameters problem"
+            rm -f "$pipe_client"
             exit 1
         fi
         ;;
     shutdown)
         if [ $# -ne 2 ]; then
             echo "Error, parameters problem"
+            rm -f "$pipe_client"
             exit 1
         fi
         echo "$client_id\"$option" > "$pipe_server"
@@ -124,8 +133,9 @@ case "$option" in
     *)
         echo "$option"
         echo "Error, bad request"
+        rm -f "$pipe_client"
         exit 1
 esac
-rm "$pipe_client"
+rm -f "$pipe_client"
 exit 0
 

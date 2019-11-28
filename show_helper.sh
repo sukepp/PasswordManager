@@ -38,8 +38,8 @@ if [ $exit_code -eq 0 ]; then
 else
     cat "$FILE_TEMP" > "$pipe_client"
 fi
-rm $FILE_TEMP
+rm -f $FILE_TEMP
 #echo "client: $pipe_client user: $user_id end"
 
-rm "$lockfile"
+rm -f "$lockfile"
 exit 0

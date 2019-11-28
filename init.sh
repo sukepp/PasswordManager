@@ -27,5 +27,5 @@ flock -n 200 || {
 
 mkdir "$root_dir"/"$user_dir"
 echo "OK: user created"
-rm "$lockfile"
+rm -f "$lockfile"
 exit 0

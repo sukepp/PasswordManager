@@ -1,3 +1,3 @@
 1. For the value of client, user, service, login, password, the double quote can not be added in them.
-
+2. Every client id is unique.
 

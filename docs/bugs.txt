@@ -1,0 +1,7 @@
+1. delete pipe
+# 2. official test shell
+3. my test file
+4. read or cat < server_pipe
+5. flock delete pipe
+6. read from server_pipe: make the payload within one line 
+7. avoid the tmp.txt

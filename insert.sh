@@ -45,13 +45,13 @@ if [[ "$mode" == "f" ]]; then
         echo -e "$content" > "$root_dir"/"$user_dir"/"$service_dir"/"$service_file"
         echo "OK: service created"
     fi
-    rm "$lockfile"
+    rm -f "$lockfile"
     exit 0
 fi
 
 if [ -f "$root_dir"/"$user_dir"/"$service_dir"/"$service_file" ]; then
     echo "Error: service already exists"
-    rm "$lockfile"
+    rm -f "$lockfile"
     exit 3
 fi
 
@@ -61,6 +61,6 @@ fi
 
 echo -e "$content" > "$root_dir"/"$user_dir"/"$service_dir"/"$service_file"
 echo "OK: service created"
-rm "$lockfile"
+rm -f "$lockfile"
 exit 0
 
