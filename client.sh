@@ -43,8 +43,6 @@ case "$option" in
         service_path="$4"
         FILE_TEMP=`mktemp`
         echo -e "login: $login\npassword: $password" | xargs -0 ./encrypt.sh "$encrypt_password" > "$FILE_TEMP"
-        #./encrypt.sh "$encrypt_password" "login: $login\npassword: $password" > tmp.txt
-        #payload=`cat tmp.txt`
         payload=`cat "$FILE_TEMP"`
         echo "$client_id\"$option\"$user_id\"$service_path\"$payload" > "$pipe_server"
         cat "$pipe_client"
@@ -64,9 +62,6 @@ case "$option" in
             FILE_TEMP=`mktemp`
             cat "$pipe_client" > "$FILE_TEMP"
             payload=`cat "$FILE_TEMP"`
-            #echo "$payload"
-            #./decrypt.sh "$encrypt_password" "$payload"
-            #echo -e `./decrypt.sh "$encrypt_password" "$payload"` > tmp.txt
             ./decrypt.sh "$encrypt_password" "$payload" > "$FILE_TEMP"
             login=`grep "^login: " "$FILE_TEMP" | head -n 1 | sed 's/login: //'`
             password=`grep "^password: " "$FILE_TEMP" | head -n 1 | sed 's/password: //'`
@@ -85,37 +80,16 @@ case "$option" in
         fi
         user_id="$3"
         service_path="$4"
-        #echo "Edit Mode: send -> $client_id show $args_string"
         echo "$client_id\"show\"$user_id\"$service_path" > "$pipe_server"
         read exit_code < "$pipe_client"
         if [ $exit_code -eq 0 ]; then
             FILE_TEMP=`mktemp`
             FILE_PAYLOAD=`mktemp`
-            #cat "$pipe_client" > "$FILE_TEMP"
-            #echo -e `cat "$pipe_client" | xargs -0 ./decrypt.sh "$encrypt_password"` > "$FILE_TEMP"
             cat "$pipe_client" | xargs -0 ./decrypt.sh "$encrypt_password" > "$FILE_PAYLOAD"
-            #sed -i '$d' $FILE_TEMP
             cat -s "$FILE_PAYLOAD" > "$FILE_TEMP"
             vim "$FILE_TEMP"
-            #login=`grep "^login: " $FILE_TEMP | head -n 1 | sed 's/login: //'`
-            #password=`grep "^password: " $FILE_TEMP | head -n 1 | sed 's/password: //'`
-            #cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password"
-            #echo "******"
-            #payload=`cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password"`
             cat "$FILE_TEMP" | xargs -0 ./encrypt.sh "$encrypt_password" > "$FILE_PAYLOAD"
             payload=`cat "$FILE_PAYLOAD" | xargs echo -n`
-            #echo "$payload" > tmp.txt
-            #payload=${payload/%?/}
-            #echo "$payload"
-            #payload=`echo -n "$payload"`
-            #payload=`echo $payload | tr -d \\n`
-            #echo "test"
-            #echo "$payload"
-            #echo ${#payload}
-            #payload=${payload//\\r\\n/-}
-            #echo "$payload"
-            #echo ${#payload}
-            #echo ${payload[0]}
             echo "$client_id\"update\"$user_id\"$service_path\"$payload" > "$pipe_server"
             rm -f "$FILE_TEMP"
             rm -f "$FILE_PAYLOAD"
@@ -159,7 +133,6 @@ case "$option" in
         cat "$pipe_client"
         ;;
     *)
-        #echo "$option"
         echo "Error, bad request"
         rm -f "$pipe_client"
         exit 1

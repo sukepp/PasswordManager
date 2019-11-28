@@ -11,7 +11,6 @@ fi
 while true; do
     echo "waiting for request..."
     read args < $PIPE_SERVER
-    #args=`cat "$PIPE_SERVER"`
     echo "Receive length: ${#args}"
     echo "Receive: $args"
 
@@ -33,14 +32,7 @@ while true; do
             service_path=${sub_args%%\"*}
             payload=${sub_args#*\"}
             echo "$client_id"
-            #echo "$user_id"
-            #echo "$service_path"
-            #echo "$payload"
-            #./decrypt.sh "$decrypt_password" "$payload" > tmp1.txt
-            #text=`cat tmp1.txt`
-            #./insert.sh "$user_id" "$service_path" "$text" > "$pipe_client" &
             ./insert.sh "$user_id" "$service_path" "$payload" > "$pipe_client" &
-            #echo `./insert.sh "$user_id" "$service_path" "$text"`
             ;;
         show)
             user_id=${sub_args%%\"*}
@@ -48,14 +40,10 @@ while true; do
             ./show_helper.sh "$user_id" "$service_path" "$pipe_client" &
             ;;
         update)
-            #echo "$sub_args"
             user_id=${sub_args%%\"*}
             sub_args=${sub_args#*\"}
             service_path=${sub_args%%\"*}
             payload=${sub_args#*\"}
-            #./decrypt.sh "$decrypt_password" "$payload" > tmp1.txt
-            #text=`cat tmp1.txt`
-            #./insert.sh "$user_id" "$service_path" f "$text" > "$pipe_client" &
             ./insert.sh "$user_id" "$service_path" f "$payload" > "$pipe_client" &
             ;;
         rm)
@@ -64,7 +52,6 @@ while true; do
             ./"rm.sh" "$user_id" "$service_path" > "$pipe_client" &
             ;;
         ls)
-            #sub_args=${sub_args/\"/\" \"}
             delimter="\""
             echo "$sub_args" | grep -q "$delimter"
             if [ $? -eq 0 ]; then

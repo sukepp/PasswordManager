@@ -3,11 +3,7 @@
 # Example of script that could be used to test the 2019 COMP30640 project
 chmod u+x ./*.sh
 
-if [ -z "$1" ]; then
-        rootFolder="."
-else
-        rootFolder="$1"
-fi
+rootFolder="./PasswordManagementData"
 
 #Test the basic commands
 #Test init.sh
@@ -74,19 +70,20 @@ serverPID=$!
 sleep 1
 if [ -p "./server.pipe" ]; then
 	echo "server.pipe created"
-        mkfifo client1.pipe
+    client_pipe="first client.pipe"
+    mkfifo "$client_pipe"
 
-	echo "client1\"init\"aDifferentUser" > ./server.pipe
-        echo "Server's answer to init aDifferentUser:"
-        cat ./client1.pipe
-	if [ -e "$rootFolder/aDifferentUser" ]; then
+	echo "first client\"init\"first user" > ./server.pipe
+        echo "Server's answer to init fisrt user:"
+        cat "$client_pipe"
+	if [ -e "$rootFolder/first user" ]; then
 		echo "Server seems OK"
 	else 
 		echo "Server seems to have a problem"
 	fi
 
-	echo "client1\"shutdown" > ./server.pipe
-        cat ./client1.pipe
+	echo "first client\"shutdown" > ./server.pipe
+        cat "$client_pipe"
 	sleep 1
 	if ps -p $serverPID > /dev/null; then
 		echo "Shutdown did not work"
@@ -98,7 +95,7 @@ if [ -p "./server.pipe" ]; then
                 echo "server.pipe not cleaned"
                 rm server.pipe
         fi
-        rm client1.pipe
+        rm "$client_pipe"
 else
 	echo "server.pipe not created"
 	kill $serverPID
@@ -110,26 +107,60 @@ echo "Test client.sh"
 
 ./server.sh &> "servout2.txt" &
 serverPID=$!
+client_pipe="second client.pipe"
 sleep 1
-echo "Client init anotherUser"
-./client.sh client1 init anotherUser
 
-./client.sh client1 shutdown
-
-if [ -e "$rootFolder/anotherUser" ]; then
-        echo "Created the folder "$rootFolder/anotherUser" correctly"
+#Test init.sh on the client
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "#Test client init"
+echo "#Should fail because no parameter"
+./client.sh "second client" init
+echo "#Should succeed"
+./client.sh "second client" init "second user"
+if [ -e "$rootFolder/myUser" ]; then
+	echo "Created the folder "$rootFolder/second user" correctly"
 else
-        echo "Did not create the folder"
+	echo "Did not create the folder"
 fi
+echo "#Should fail because user already exists"
+./client.sh "second client" init "second user"
 
+
+##test insert.sh on the client
+#echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+#echo "#Test client insert"
+#echo "./client.sh \"second client\" insert \"second user\" \"new service\"" 
+#echo "#Should succeed"
+#./client.sh "second client" insert "second user" "new service" < ./test_service.txt
+#if [ -f "$rootFolder/second user/new service" ]; then
+#    echo "Created the file new service correctly"
+#	echo "Content of the file:"
+#	cat "$rootFolder/second user/new service" | xargs -0 ./decrypt.sh "password"
+#else
+#        echo "Did not create the file"
+#fi
+#echo "#Should succeed"
+#./insert.sh myUser newService "f" "login: newlog\npassword: newpass"
+#if [ -f "$rootFolder/myUser/newService" ]; then
+#        echo "Created the file correctly"
+#        echo "Content of the file:"
+#        cat "$rootFolder/myUser/newService"
+#else
+#        echo "Did not create the file"
+#fi
+
+
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "#Test client shutdown"
+./client.sh "second client" shutdown
 if ps -p $serverPID > /dev/null; then
 	echo "Server did not shut down"
 	kill $serverPID
 fi
 
-if [ -p "./client1.pipe" ]; then
+if [ -p "$client_pipe" ]; then
         echo "Cleanup not done"
-        rm ./client1.pipe
+        rm "$client_pipe"
 else
 	echo "Cleanup OK"
 fi
