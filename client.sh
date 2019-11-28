@@ -41,11 +41,14 @@ case "$option" in
         read -p "Please write password: " password
         user_id="$3"
         service_path="$4"
-        echo -e "login: $login\npassword: $password" | xargs -0 ./encrypt.sh "$encrypt_password" > tmp.txt
+        FILE_TEMP=`mktemp`
+        echo -e "login: $login\npassword: $password" | xargs -0 ./encrypt.sh "$encrypt_password" > "$FILE_TEMP"
         #./encrypt.sh "$encrypt_password" "login: $login\npassword: $password" > tmp.txt
-        payload=`cat tmp.txt`
+        #payload=`cat tmp.txt`
+        payload=`cat "$FILE_TEMP"`
         echo "$client_id\"$option\"$user_id\"$service_path\"$payload" > "$pipe_server"
         cat "$pipe_client"
+        rm -f "$FILE_TEMP"
         ;;
     show)
         if [ $# -ne 4 ]; then
@@ -64,12 +67,12 @@ case "$option" in
             #echo "$payload"
             #./decrypt.sh "$encrypt_password" "$payload"
             #echo -e `./decrypt.sh "$encrypt_password" "$payload"` > tmp.txt
-            ./decrypt.sh "$encrypt_password" "$payload" > tmp.txt
-            login=`grep "^login: " tmp.txt | head -n 1 | sed 's/login: //'`
-            password=`grep "^password: " tmp.txt | head -n 1 | sed 's/password: //'`
+            ./decrypt.sh "$encrypt_password" "$payload" > "$FILE_TEMP"
+            login=`grep "^login: " "$FILE_TEMP" | head -n 1 | sed 's/login: //'`
+            password=`grep "^password: " "$FILE_TEMP" | head -n 1 | sed 's/password: //'`
             echo "$user_id's login for $service_path is $login"
             echo "$user_id's password for $service_path is $password"
-            rm -f $FILE_TEMP
+            rm -f "$FILE_TEMP"
         else
             cat "$pipe_client"
         fi
@@ -115,6 +118,7 @@ case "$option" in
             #echo ${payload[0]}
             echo "$client_id\"update\"$user_id\"$service_path\"$payload" > "$pipe_server"
             rm -f "$FILE_TEMP"
+            rm -f "$FILE_PAYLOAD"
         fi
         cat "$pipe_client"
         ;;
@@ -155,7 +159,7 @@ case "$option" in
         cat "$pipe_client"
         ;;
     *)
-        echo "$option"
+        #echo "$option"
         echo "Error, bad request"
         rm -f "$pipe_client"
         exit 1
