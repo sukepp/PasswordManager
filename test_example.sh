@@ -8,6 +8,7 @@ if [ -z "$1" ]; then
 else
         rootFolder="$1"
 fi
+rootFolder="./PasswordManagementData"
 
 #Test the basic commands
 #Test init.sh
@@ -77,6 +78,7 @@ if [ -p "./server.pipe" ]; then
         mkfifo client1.pipe
 
 	echo "client1\"init\"aDifferentUser" > ./server.pipe
+	#echo "client1 init aDifferentUser" > ./server.pipe
         echo "Server's answer to init aDifferentUser:"
         cat ./client1.pipe
 	if [ -e "$rootFolder/aDifferentUser" ]; then
