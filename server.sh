@@ -8,6 +8,14 @@ if [ ! -e "$PIPE_SERVER" ]; then
    mkfifo "$PIPE_SERVER"
 fi
 
+trap "exit_interrupted" INT
+
+function exit_interrupted() 
+{
+    rm -f "$PIPE_SERVER"
+    exit 0
+}
+
 while true; do
     echo "waiting for request..."
     read args < $PIPE_SERVER

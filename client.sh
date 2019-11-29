@@ -12,6 +12,14 @@ if [ ! -e "$pipe_server" ]; then
     exit 1
 fi
 
+trap "exit_interrupted" INT
+
+function exit_interrupted() 
+{
+    rm -f "$PIPE_SERVER"
+    exit 0
+}
+
 encrypt_password="password"
 client_id="$1"
 pipe_client="$client_id".pipe
@@ -37,8 +45,18 @@ case "$option" in
             rm -f "$pipe_client"
             exit 1
         fi
-        read -p "Please write login: " login
-        read -p "Please write password: " password
+        echo "Please write login:"
+        read login
+        if [ -z "$login" ]; then
+            echo "Error, login is not valid."
+            rm -f "$pipe_client"
+            exit 1
+        fi
+        echo "Please write password:"
+        read password
+        if [ -z "$password" ]; then
+            password=`cat /dev/urandom | head -n 10 | md5sum | head -c 10`
+        fi
         user_id="$3"
         service_path="$4"
         FILE_TEMP=`mktemp`
